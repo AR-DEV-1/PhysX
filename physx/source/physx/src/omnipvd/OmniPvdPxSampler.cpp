@@ -409,6 +409,17 @@ void streamArticulationName(const physx::PxArticulationReducedCoordinate & art, 
 #endif
 }
 
+void streamArticulationJointName(const physx::PxArticulationJointReducedCoordinate& joint, const char* name)
+{
+#if PX_SUPPORT_OMNI_PVD
+	int strLen = streamStringLength(name);
+	if (strLen)
+	{
+		OMNI_PVD_SET_ARRAY(OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, name, joint, name, strLen + 1); // copies over the trailing zero too
+	}
+#endif
+}
+
 void streamSphereGeometry(const physx::PxSphereGeometry& g)
 {
 	OMNI_PVD_WRITE_SCOPE_BEGIN(pvdWriter, pvdRegData)
@@ -775,6 +786,8 @@ void streamRigidStatic(const physx::PxRigidStatic& rs)
 	streamRigidActorAttributes(rs);
 }
 
+#if PX_SUPPORT_GPU_PHYSX
+
 void streamPBDParticleSystemAttributes(const physx::PxPBDParticleSystem& ps)
 {
 	streamActorAttributes(ps, false);
@@ -921,6 +934,8 @@ void streamParticleRigidBuffer(const physx::PxParticleRigidBuffer& pb)
 	streamParticleBufferAttributes(pb);
 }
 
+#endif
+
 void streamArticulationJoint(const physx::PxArticulationJointReducedCoordinate& jointRef)
 {
 	const PxU32 degreesOfFreedom = PxArticulationAxis::eCOUNT;
@@ -963,6 +978,18 @@ void streamArticulationJoint(const physx::PxArticulationJointReducedCoordinate& 
 	PxReal maxforces[degreesOfFreedom];
 	for (PxU32 ax = 0; ax < degreesOfFreedom; ++ax)
 		maxforces[ax] = jointRef.getDriveParams(static_cast<PxArticulationAxis::Enum>(ax)).maxForce;
+	PxReal maxefforts[degreesOfFreedom];
+	for (PxU32 ax = 0; ax < degreesOfFreedom; ++ax)
+		maxefforts[ax] = jointRef.getDriveParams(static_cast<PxArticulationAxis::Enum>(ax)).envelope.maxEffort;
+	PxReal maxactuatorvelocities[degreesOfFreedom];
+	for (PxU32 ax = 0; ax < degreesOfFreedom; ++ax)
+		maxactuatorvelocities[ax] = jointRef.getDriveParams(static_cast<PxArticulationAxis::Enum>(ax)).envelope.maxActuatorVelocity;
+	PxReal velocitydependentresistances[degreesOfFreedom];
+	for (PxU32 ax = 0; ax < degreesOfFreedom; ++ax)
+		velocitydependentresistances[ax] = jointRef.getDriveParams(static_cast<PxArticulationAxis::Enum>(ax)).envelope.velocityDependentResistance;
+	PxReal speedeffortgradients[degreesOfFreedom];
+	for (PxU32 ax = 0; ax < degreesOfFreedom; ++ax)
+		speedeffortgradients[ax] = jointRef.getDriveParams(static_cast<PxArticulationAxis::Enum>(ax)).envelope.speedEffortGradient;
 	PxArticulationDriveType::Enum drivetypes[degreesOfFreedom];
 	for (PxU32 ax = 0; ax < degreesOfFreedom; ++ax)
 		drivetypes[ax] = jointRef.getDriveParams(static_cast<PxArticulationAxis::Enum>(ax)).driveType;
@@ -972,6 +999,19 @@ void streamArticulationJoint(const physx::PxArticulationJointReducedCoordinate& 
 	PxReal drivevelocitys[degreesOfFreedom];
 	for (PxU32 ax = 0; ax < degreesOfFreedom; ++ax)
 		drivevelocitys[ax] = jointRef.getDriveVelocity(static_cast<PxArticulationAxis::Enum>(ax));
+		
+	PxReal staticfrictionefforts[degreesOfFreedom];
+	for (PxU32 ax = 0; ax < degreesOfFreedom; ++ax)
+		staticfrictionefforts[ax] = jointRef.getFrictionParams(static_cast<PxArticulationAxis::Enum>(ax)).staticFrictionEffort;
+	PxReal dynamicfrictionefforts[degreesOfFreedom];
+	for (PxU32 ax = 0; ax < degreesOfFreedom; ++ax)
+		dynamicfrictionefforts[ax] = jointRef.getFrictionParams(static_cast<PxArticulationAxis::Enum>(ax)).dynamicFrictionEffort;
+	PxReal viscousFrictionCoefficients[degreesOfFreedom];
+	for (PxU32 ax = 0; ax < degreesOfFreedom; ++ax)
+		viscousFrictionCoefficients[ax] = jointRef.getFrictionParams(static_cast<PxArticulationAxis::Enum>(ax)).viscousFrictionCoefficient;
+	PxReal maxJointDofV[degreesOfFreedom];
+	for (PxU32 ax = 0; ax < degreesOfFreedom; ++ax)
+		maxJointDofV[ax] = jointRef.getMaxJointVelocity(static_cast<PxArticulationAxis::Enum>(ax));
 
 	OMNI_PVD_WRITE_SCOPE_BEGIN(pvdWriter, pvdRegData)
 
@@ -982,7 +1022,14 @@ void streamArticulationJoint(const physx::PxArticulationJointReducedCoordinate& 
 	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, motion, jointRef, motions, degreesOfFreedom);
 	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, armature, jointRef, armatures, degreesOfFreedom);
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, frictionCoefficient, jointRef, coefficient);
+	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, staticFrictionEffort,
+								jointRef, staticfrictionefforts, degreesOfFreedom);
+	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, dynamicFrictionEffort, jointRef, dynamicfrictionefforts, degreesOfFreedom);
+	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate,
+								viscousFrictionCoefficient, jointRef, viscousFrictionCoefficients, degreesOfFreedom);
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, maxJointVelocity, jointRef, maxJointV);
+	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate,
+								maxJointDofVelocity, jointRef, maxJointDofV, degreesOfFreedom);
 	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, jointPosition, jointRef, positions, degreesOfFreedom);
 	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, jointVelocity, jointRef, velocitys, degreesOfFreedom);
 	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, concreteTypeName, jointRef, concreteTypeName, concreteTypeNameLen);
@@ -991,6 +1038,10 @@ void streamArticulationJoint(const physx::PxArticulationJointReducedCoordinate& 
 	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, driveStiffness, jointRef, stiffnesss, degreesOfFreedom);
 	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, driveDamping, jointRef, dampings, degreesOfFreedom);
 	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, driveMaxForce, jointRef, maxforces, degreesOfFreedom);
+	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, driveMaxEffort, jointRef, maxefforts, degreesOfFreedom);
+	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, driveMaxActuatorVelocity, jointRef, maxactuatorvelocities, degreesOfFreedom);
+	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, driveVelocityDependentResistance, jointRef, velocitydependentresistances, degreesOfFreedom);
+	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, driveSpeedEffortGradient, jointRef, speedeffortgradients, degreesOfFreedom);
 	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, driveType, jointRef, drivetypes, degreesOfFreedom);
 	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, driveTarget, jointRef, drivetargets, degreesOfFreedom);
 	OMNI_PVD_SET_ARRAY_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationJointReducedCoordinate, driveVelocity, jointRef, drivevelocitys, degreesOfFreedom);
@@ -1049,8 +1100,6 @@ void streamArticulation(const physx::PxArticulationReducedCoordinate& art)
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationReducedCoordinate, sleepThreshold, art, art.getSleepThreshold());
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationReducedCoordinate, stabilizationThreshold, art, art.getStabilizationThreshold());
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationReducedCoordinate, wakeCounter, art, art.getWakeCounter());
-	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationReducedCoordinate, maxLinearVelocity, art, art.getMaxCOMLinearVelocity());
-	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationReducedCoordinate, maxAngularVelocity, art, art.getMaxCOMAngularVelocity());
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationReducedCoordinate, worldBounds, art, art.getWorldBounds());
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationReducedCoordinate, articulationFlags, art, art.getArticulationFlags());
 	OMNI_PVD_SET_EXPLICIT(pvdWriter, pvdRegData, OMNI_PVD_CONTEXT_HANDLE, PxArticulationReducedCoordinate, dofs, art, art.getDofs());
@@ -1699,6 +1748,9 @@ void OmniPvdPxSampler::onObjectAdd(const physx::PxBase& object)
 			OMNI_PVD_ADD(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, rigidStatics, physics, rs);
 		}
 		break;
+
+	#if PX_SUPPORT_GPU_PHYSX
+
 		case physx::PxConcreteType::ePBD_PARTICLESYSTEM:
 		{
 			const PxPBDParticleSystem& ps = static_cast<const PxPBDParticleSystem&>(object);
@@ -1734,6 +1786,8 @@ void OmniPvdPxSampler::onObjectAdd(const physx::PxBase& object)
 			OMNI_PVD_ADD(OMNI_PVD_CONTEXT_HANDLE, PxPhysics, particleBuffers, physics, pb);
 		}
 		break;
+
+#endif
 	}
 }
 
@@ -1878,6 +1932,9 @@ void OmniPvdPxSampler::onObjectRemove(const physx::PxBase& object)
 			OMNI_PVD_DESTROY(OMNI_PVD_CONTEXT_HANDLE, PxActor, ps);
 		}
 		break;
+
+#if PX_SUPPORT_GPU_PHYSX
+
 		case physx::PxConcreteType::ePARTICLE_BUFFER:
 		{
 			const PxParticleBuffer& pb = static_cast<const PxParticleBuffer&>(object);
@@ -1907,6 +1964,8 @@ void OmniPvdPxSampler::onObjectRemove(const physx::PxBase& object)
 			OMNI_PVD_DESTROY(OMNI_PVD_CONTEXT_HANDLE, PxParticleRigidBuffer, pb);
 		}
 		break;
+
+#endif
 	}
 }
 

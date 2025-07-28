@@ -49,6 +49,7 @@ static DisabledPropertyEntry gDisabledProperties[] = {
 	DisabledPropertyEntry( "PxSceneDesc", "SceneQuerySystem" ),
     DisabledPropertyEntry( "PxSceneDesc", "DeformableSurfacePostSolveCallback" ),
     DisabledPropertyEntry( "PxSceneDesc", "DeformableVolumePostSolveCallback" ),
+    DisabledPropertyEntry( "PxSceneDesc", "GpuBroadPhaseDesc" ),
 	DisabledPropertyEntry( "PxShape", "Actor" ),
 	DisabledPropertyEntry( "PxShape", "Geometry" ),
 	DisabledPropertyEntry("PxShape", "GPUIndex"),
@@ -96,7 +97,6 @@ static DisabledPropertyEntry gDisabledProperties[] = {
 	DisabledPropertyEntry( "PxCustomGeometry", "Callbacks" ),
 	DisabledPropertyEntry( "PxJoint", "ClassName" ),
 	DisabledPropertyEntry( "PxDistanceJoint", "ClassName" ),
-	DisabledPropertyEntry( "PxContactJoint", "ClassName"),
 	DisabledPropertyEntry( "PxGearJoint", "ClassName"),
 	DisabledPropertyEntry( "PxRackAndPinionJoint", "ClassName"),
 	DisabledPropertyEntry( "PxFixedJoint", "ClassName" ),
@@ -120,6 +120,8 @@ static DisabledPropertyEntry gDisabledProperties[] = {
 //	DisabledPropertyEntry( "PxTolerancesScale", "IsValid" ),
 	DisabledPropertyEntry( "PxConstraint", "SolverResidual" ),
 	DisabledPropertyEntry( "PxArticulationReducedCoordinate", "SolverResidual" ),
+    DisabledPropertyEntry( "PxConstraint", "GPUIndex"),
+    DisabledPropertyEntry( "PxD6Joint", "GPUIndex"),
 };
 
 //Append these properties to this type.
@@ -150,6 +152,8 @@ static const char* gImportantPhysXTypes[] =
 	"PxArticulationJointReducedCoordinate",
 	"PxArticulationLimit",
 	"PxArticulationDrive",
+	"PxJointFrictionParams",
+	"PxPerformanceEnvelope",
 	"PxScene",
 	"PxPhysics",
 	"PxHeightFieldDesc",
@@ -191,7 +195,6 @@ static const char* gExtensionPhysXTypes[] =
 	"PxDistanceJoint",
 	"PxGearJoint",
 	"PxRackAndPinionJoint",
-	"PxContactJoint",
 	"PxFixedJoint",
 	"PxPrismaticJoint",
 	"PxRevoluteJoint",

@@ -525,7 +525,7 @@ bool PxsContext::getManagerTouchEventCount(PxU32* newTouch, PxU32* lostTouch, Px
 	return true;
 }
 
-bool PxsContext::fillManagerTouchEvents(PxvContactManagerTouchEvent* newTouch, PxU32& newTouchCount,
+void PxsContext::fillManagerTouchEvents(PxvContactManagerTouchEvent* newTouch, PxU32& newTouchCount,
 										PxvContactManagerTouchEvent* lostTouch, PxU32& lostTouchCount,
 										PxvContactManagerTouchEvent* ccdTouch, PxU32& ccdTouchCount)
 {
@@ -586,7 +586,6 @@ bool PxsContext::fillManagerTouchEvents(PxvContactManagerTouchEvent* newTouch, P
 	newTouchCount = PxU32(newTouch - newTouchStart);
 	lostTouchCount = PxU32(lostTouch - lostTouchStart);
 	ccdTouchCount = PxU32(ccdTouch - ccdTouchStart);
-	return true;
 }
 
 void PxsContext::beginUpdate()

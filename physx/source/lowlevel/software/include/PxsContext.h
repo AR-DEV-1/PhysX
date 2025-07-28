@@ -54,15 +54,11 @@
 #include "GuPersistentContactManifold.h"
 #include "PxcNpThreadContext.h"
 
+namespace physx
+{
 #if PX_SUPPORT_GPU_PHYSX
-namespace physx
-{
-	class PxCudaContextManager;
-}
+class PxCudaContextManager;
 #endif
-
-namespace physx
-{
 class PxsRigidBody;
 struct PxcConstraintBlock;
 class PxsMaterialManager;
@@ -93,7 +89,7 @@ class PxsContext : public PxUserAllocated, public PxcNpContext
 {
 												PX_NOCOPY(PxsContext)
 public:
-												PxsContext(	const PxSceneDesc& desc, PxTaskManager*, Cm::FlushPool&, PxCudaContextManager*, PxU32 poolSlabSize, PxU64 contextID);
+												PxsContext(const PxSceneDesc& desc, PxTaskManager*, Cm::FlushPool&, PxCudaContextManager*, PxU32 poolSlabSize, PxU64 contextID);
 												~PxsContext();
 
 					void						createTransformCache(PxVirtualAllocatorCallback& allocatorCallback);
@@ -126,7 +122,7 @@ public:
 
 	// Manager status change
 					bool						getManagerTouchEventCount(PxU32* newTouch, PxU32* lostTouch, PxU32* ccdTouch) const;
-					bool						fillManagerTouchEvents(
+					void						fillManagerTouchEvents(
 													PxvContactManagerTouchEvent* newTouch, PxU32& newTouchCount,
 													PxvContactManagerTouchEvent* lostTouch, PxU32& lostTouchCount,
 													PxvContactManagerTouchEvent* ccdTouch, PxU32& ccdTouchCount);
